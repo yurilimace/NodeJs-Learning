@@ -1,12 +1,16 @@
 const  express = require('express')
 const User = require('../Model/user')
+const multer = require('multer')
+var fs = require('fs')
+const upload = multer({dest:'upload/'})
 
 const router = express.Router()
 
-router.post('/check',function(req,res,next){
+router.post('/check',upload.single('image'),function(req,res,next){
     try{
         const New = new User({
-            name:req.body.name
+            name:req.body.name,
+            image:{data:fs.readFileSync(req.file.path),contentType:'image/png'}
         })
         New.save()
         res.send("user created")
@@ -18,7 +22,7 @@ router.post('/check',function(req,res,next){
 
 router.get('/check',function(req,res,next){
     //to exclude some field, put - before name of field
-    User.find({},'-_id name',function(err,users){
+    User.find({},function(err,users){
         if(err){
             res.send("can not get users list on database")
         }
@@ -29,7 +33,7 @@ router.get('/check',function(req,res,next){
     })
 })
 
-router.put('/check',function(req,res,next){
+router.put('/check',upload.none(),function(req,res,next){
     User.findOneAndUpdate({name:req.body.name},{name:req.body.update},function(err,Users){
         if(err){
             res.send("failed to update")
@@ -41,14 +45,14 @@ router.put('/check',function(req,res,next){
     })
 })
 
-router.delete('/check',function(req,res,next){
+router.delete('/check',upload.none(),function(req,res,next){
     User.findOneAndDelete({name:req.body.name},function(err,Users){
         if(err){
             res.send('não foi possivel excluir')
         }
         else{
             res.send('Excluido').json()
-            console.log(req.body)
+            console.log(req.body.name)
         }
 
     })
